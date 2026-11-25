@@ -1,0 +1,13 @@
+{
+    "KPackageStructure": "KWin/Script",
+    "KPlugin": {
+        "Id": "save-window-geometry",
+        "Name": "Save Window Geometry",
+        "Description": "Remembers the size and position of normal windows in a JSON file and restores them when a window is reopened, including after a KWin restart, logout or reboot. Dialogs, popups, docks and other special windows are ignored.",
+        "Icon": "save-window-geometry",
+        "License": "GPL-3.0-or-later",
+        "Version": "2.1"
+    },
+    "X-Plasma-API": "javascript",
+    "X-Plasma-MainScript": "code/main.js"
+}

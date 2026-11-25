@@ -1,0 +1,5 @@
+__pycache__/
+*.py[cod]
+helper.log
+helper.log.old
+geometry.json
