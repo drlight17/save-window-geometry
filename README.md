@@ -1,4 +1,4 @@
-# <img src="icon/save-window-geometry.svg" alt="Save Window Geometry icon" width="32" height="32" align="absmiddle"> Save Window Geometry (KWin script)
+# <img src="icon/save-window-geometry.svg" alt="Save Window Geometry icon" width="96" height="96" align="absmiddle"> Save Window Geometry (KWin script)
 
 A small KWin script for Plasma 5 (developed and verified against Plasma 5.27 /
 KWin 5.27.11) that remembers the size and position of normal application
