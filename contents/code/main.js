@@ -1,4 +1,4 @@
-var scriptVersion = "2.2";
+var scriptVersion = "2.3";
 var store = {};
 var blacklist = [];
 var lastPersistAt = 0;
@@ -71,9 +71,9 @@ function readBlacklist() {
     return changed;
 }
 
-function isBlacklisted(client) {
+function matchingBlacklistEntry(client) {
     if (blacklist.length === 0) {
-        return false;
+        return "";
     }
     var identifiers = [
         asString(client.resourceClass),
@@ -83,11 +83,18 @@ function isBlacklisted(client) {
     ];
     for (var i = 0; i < identifiers.length; i++) {
         var value = identifiers[i].trim().toLowerCase();
-        if (value && blacklist.indexOf(value) >= 0) {
-            return true;
+        if (value) {
+            var index = blacklist.indexOf(value);
+            if (index >= 0) {
+                return blacklist[index];
+            }
         }
     }
-    return false;
+    return "";
+}
+
+function isBlacklisted(client) {
+    return matchingBlacklistEntry(client) !== "";
 }
 
 function blacklistEntryFor(client) {
@@ -106,7 +113,7 @@ function blacklistEntryFor(client) {
 }
 
 function addToBlacklist(client) {
-    if (!client) {
+    if (!client || !isEligibleWindow(client) || isBlacklisted(client)) {
         return false;
     }
     var entry = blacklistEntryFor(client);
@@ -114,28 +121,57 @@ function addToBlacklist(client) {
         log("could not determine a window class to ignore");
         return false;
     }
-    if (blacklist.indexOf(entry) < 0) {
-        blacklist.push(entry);
-        log("ignoring window class: " + entry);
-        try {
-            callDBus(storageService, storagePath, storageInterface, "AddBlacklistEntry", entry);
-        } catch (e) {
-            log("could not persist blacklist entry: " + e);
-        }
+    blacklist.push(entry);
+    log("ignoring window class: " + entry);
+    try {
+        callDBus(storageService, storagePath, storageInterface, "AddBlacklistEntry", entry);
+    } catch (e) {
+        log("could not persist blacklist entry: " + e);
     }
     return true;
+}
+
+function removeFromBlacklist(entry) {
+    if (!entry) {
+        return false;
+    }
+    var index = blacklist.indexOf(entry);
+    if (index < 0) {
+        return false;
+    }
+    blacklist.splice(index, 1);
+    log("no longer ignoring window class: " + entry);
+    try {
+        callDBus(storageService, storagePath, storageInterface, "RemoveBlacklistEntry", entry);
+    } catch (e) {
+        log("could not persist blacklist removal: " + e);
+    }
+    return true;
+}
+
+function toggleBlacklist(client) {
+    if (!client || !isEligibleWindow(client)) {
+        return false;
+    }
+    var existing = matchingBlacklistEntry(client);
+    if (existing) {
+        return removeFromBlacklist(existing);
+    }
+    return addToBlacklist(client);
 }
 
 function registerBlacklistPicker() {
     try {
         registerUserActionsMenu(function(client) {
-            if (!isRegularWindow(client)) {
+            if (!isEligibleWindow(client)) {
                 return null;
             }
             return {
-                title: "Ignore for Save Window Geometry",
+                text: "Ignore for Save Window Geometry",
+                checkable: true,
+                checked: isBlacklisted(client),
                 triggered: function() {
-                    addToBlacklist(client);
+                    toggleBlacklist(client);
                 }
             };
         });
@@ -158,11 +194,8 @@ function registerBlacklistPicker() {
     }
 }
 
-function isRegularWindow(client) {
+function isEligibleWindow(client) {
     if (!client) {
-        return false;
-    }
-    if (isBlacklisted(client)) {
         return false;
     }
     try {
@@ -188,6 +221,11 @@ function isRegularWindow(client) {
     }
     return true;
 }
+
+function isRegularWindow(client) {
+    return isEligibleWindow(client) && !isBlacklisted(client);
+}
+
 
 function windowKey(client) {
     var resourceClass = asString(client.resourceClass).toLowerCase();

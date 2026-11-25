@@ -205,7 +205,7 @@ def reconfigure_kwin():
         pass
 
 
-def notify_blacklisted(entry):
+def notify(message):
     try:
         bus = dbus.SessionBus()
         if not bus.name_has_owner("org.freedesktop.Notifications"):
@@ -221,7 +221,7 @@ def notify_blacklisted(entry):
                 dbus.UInt32(0),
                 "save-window-geometry",
                 "Save Window Geometry",
-                "Ignoring windows of class: %s" % escape(entry),
+                message,
                 dbus.Array([], signature="s"),
                 dbus.Dictionary({}, signature="sv"),
                 dbus.Int32(4000),
@@ -324,11 +324,35 @@ class GeometryStore(dbus.service.Object):
             if self._monitor_state is not None:
                 self._monitor_state["blacklist"] = value
             log("added blacklist entry: %s" % candidate)
-            notify_blacklisted(candidate)
+            notify("Ignoring windows of class: %s" % escape(candidate))
             reconfigure_kwin()
             return True
         except Exception as error:
             log("AddBlacklistEntry failed: %s" % error)
+            return False
+
+    @dbus.service.method(INTERFACE, in_signature="s", out_signature="b")
+    def RemoveBlacklistEntry(self, entry):
+        try:
+            candidate = str(entry).strip()
+            if not candidate:
+                return False
+            entries = parse_blacklist(read_blacklist_raw())
+            filtered = [item for item in entries if item.casefold() != candidate.casefold()]
+            if len(filtered) == len(entries):
+                log("blacklist entry not present: %s" % candidate)
+                return True
+            value = write_blacklist(filtered)
+            if value is None:
+                return False
+            if self._monitor_state is not None:
+                self._monitor_state["blacklist"] = value
+            log("removed blacklist entry: %s" % candidate)
+            notify("No longer ignoring windows of class: %s" % escape(candidate))
+            reconfigure_kwin()
+            return True
+        except Exception as error:
+            log("RemoveBlacklistEntry failed: %s" % error)
             return False
 
     @dbus.service.method(INTERFACE, in_signature="", out_signature="b")

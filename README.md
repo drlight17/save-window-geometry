@@ -38,12 +38,14 @@ D-Bus window picker. The picker is therefore integrated into the window menu
 and a global shortcut:
 
 - Right-click a window title bar, open **More Actions** and choose **Ignore for
-  Save Window Geometry**.
+  Save Window Geometry**. The item is checkable and stays in the menu: it is
+  checked while the window is ignored, and selecting it again removes the
+  class from the blacklist.
 - Or focus the window and press **Meta+Shift+I** (the default; change it in
-  *System Settings -> Shortcuts*).
+  *System Settings -> Shortcuts*) to ignore it.
 
-Either action reads the window's class/application id and adds it to the
-blacklist. A notification confirms the entry. The helper writes the list to the
+Both actions read the window's class/application id automatically. A
+notification confirms the change. The helper writes the list to the
 `Blacklist` key of `[Script-save-window-geometry]` in `kwinrc` and asks KWin to
 reload, so the settings page and the running script see the change; the helper
 also watches `kwinrc` so edits made through the settings page are applied

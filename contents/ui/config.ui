@@ -53,7 +53,7 @@
       <bool>true</bool>
      </property>
      <property name="text">
-      <string>Picker: right-click a window title bar and choose More Actions → Ignore for Save Window Geometry, or focus the window and press Meta+Shift+I. The class or application id is added automatically. The shortcut can be changed in System Settings → Shortcuts.</string>
+      <string>Picker: right-click a window title bar and choose More Actions → Ignore for Save Window Geometry. The menu item is checked while the window is ignored; select it again to stop ignoring it. Or focus a window and press Meta+Shift+I to ignore it. The shortcut can be changed in System Settings → Shortcuts.</string>
      </property>
     </widget>
    </item>
