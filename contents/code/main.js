@@ -1,5 +1,6 @@
-var scriptVersion = "2.1";
+var scriptVersion = "2.2";
 var store = {};
+var blacklist = [];
 var lastPersistAt = 0;
 var persistIntervalMs = 1000;
 var persistErrorLogged = false;
@@ -44,8 +45,124 @@ function countKeys(object) {
     return count;
 }
 
+function parseBlacklist(text) {
+    var normalized = String(text).replace(/,/g, "\n");
+    var lines = normalized.split("\n");
+    var entries = [];
+    for (var i = 0; i < lines.length; i++) {
+        var entry = lines[i].trim().toLowerCase();
+        if (entry && entries.indexOf(entry) < 0) {
+            entries.push(entry);
+        }
+    }
+    return entries;
+}
+
+function readBlacklist() {
+    var text = "";
+    try {
+        text = asString(readConfig("Blacklist", ""));
+    } catch (e) {
+        text = "";
+    }
+    var entries = parseBlacklist(text);
+    var changed = entries.join("|") !== blacklist.join("|");
+    blacklist = entries;
+    return changed;
+}
+
+function isBlacklisted(client) {
+    if (blacklist.length === 0) {
+        return false;
+    }
+    var identifiers = [
+        asString(client.resourceClass),
+        asString(client.resourceName),
+        asString(client.desktopFileName),
+        asString(client.windowRole)
+    ];
+    for (var i = 0; i < identifiers.length; i++) {
+        var value = identifiers[i].trim().toLowerCase();
+        if (value && blacklist.indexOf(value) >= 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function blacklistEntryFor(client) {
+    var candidates = [
+        asString(client.resourceClass),
+        asString(client.resourceName),
+        asString(client.desktopFileName)
+    ];
+    for (var i = 0; i < candidates.length; i++) {
+        var value = candidates[i].trim();
+        if (value) {
+            return value.toLowerCase();
+        }
+    }
+    return "";
+}
+
+function addToBlacklist(client) {
+    if (!client) {
+        return false;
+    }
+    var entry = blacklistEntryFor(client);
+    if (!entry) {
+        log("could not determine a window class to ignore");
+        return false;
+    }
+    if (blacklist.indexOf(entry) < 0) {
+        blacklist.push(entry);
+        log("ignoring window class: " + entry);
+        try {
+            callDBus(storageService, storagePath, storageInterface, "AddBlacklistEntry", entry);
+        } catch (e) {
+            log("could not persist blacklist entry: " + e);
+        }
+    }
+    return true;
+}
+
+function registerBlacklistPicker() {
+    try {
+        registerUserActionsMenu(function(client) {
+            if (!isRegularWindow(client)) {
+                return null;
+            }
+            return {
+                title: "Ignore for Save Window Geometry",
+                triggered: function() {
+                    addToBlacklist(client);
+                }
+            };
+        });
+    } catch (e) {
+        log("could not register the window menu action: " + e);
+    }
+
+    try {
+        registerShortcut("SaveWindowGeometryIgnoreWindow",
+                         "Ignore active window for Save Window Geometry",
+                         "Meta+Shift+I",
+                         function() {
+                             var client = workspace.activeClient;
+                             if (client) {
+                                 addToBlacklist(client);
+                             }
+                         });
+    } catch (e2) {
+        log("could not register the ignore-window shortcut: " + e2);
+    }
+}
+
 function isRegularWindow(client) {
     if (!client) {
+        return false;
+    }
+    if (isBlacklisted(client)) {
         return false;
     }
     try {
@@ -663,9 +780,14 @@ function onConfigChanged() {
     if (mergeStored(readStoredText())) {
         log("loaded " + countKeys(store) + " stored window geometry record(s)");
     }
+    if (readBlacklist()) {
+        log("blacklist updated: " + blacklist.length + " entr(y/ies)");
+    }
 }
 
 function init() {
+    readBlacklist();
+
     var initial = readStoredText();
     if (initial) {
         mergeStored(initial);
@@ -695,6 +817,7 @@ function init() {
     }
 
     requestPersistedState();
+    registerBlacklistPicker();
 
     var existing = [];
     try {
@@ -707,7 +830,8 @@ function init() {
         track(existing[i], false, true);
     }
 
-    log("v" + scriptVersion + " loaded: tracking " + existing.length + " existing window(s), " + countKeys(store) + " stored record(s)");
+    log("v" + scriptVersion + " loaded: tracking " + existing.length + " existing window(s), " +
+        countKeys(store) + " stored record(s), " + blacklist.length + " blacklisted class(es)");
 }
 
 init();

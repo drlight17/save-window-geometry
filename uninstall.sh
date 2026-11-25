@@ -75,6 +75,7 @@ fi
 if command -v kwriteconfig5 >/dev/null 2>&1; then
     run_quiet kwriteconfig5 --file kwinrc --group Plugins --key "${plugin_id}Enabled" --delete
     run_quiet kwriteconfig5 --file kwinrc --group Script-${plugin_id} --key state --delete
+    run_quiet kwriteconfig5 --file kwinrc --group Script-${plugin_id} --key Blacklist --delete
 fi
 
 if command -v qdbus >/dev/null 2>&1; then

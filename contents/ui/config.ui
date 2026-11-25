@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>KWin::SaveWindowGeometryConfigForm</class>
+ <widget class="QWidget" name="KWin::SaveWindowGeometryConfigForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>520</width>
+    <height>330</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Save Window Geometry</string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <item>
+    <widget class="QLabel" name="introLabel">
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+     <property name="text">
+      <string>Windows whose class, application name, desktop file or window role matches an entry below are ignored: their size and position are neither saved nor restored. KWin still manages the windows normally.</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="listLabel">
+     <property name="text">
+      <string>Ignored window classes / application ids (one per line, or comma separated):</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPlainTextEdit" name="kcfg_Blacklist">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>130</height>
+      </size>
+     </property>
+     <property name="placeholderText">
+      <string>dolphin&#10;firefox&#10;org.kde.konsole</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="pickerLabel">
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+     <property name="text">
+      <string>Picker: right-click a window title bar and choose More Actions → Ignore for Save Window Geometry, or focus the window and press Meta+Shift+I. The class or application id is added automatically. The shortcut can be changed in System Settings → Shortcuts.</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

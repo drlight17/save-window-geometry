@@ -6,8 +6,9 @@
         "Description": "Remembers the size and position of normal windows in a JSON file and restores them when a window is reopened, including after a KWin restart, logout or reboot. Dialogs, popups, docks and other special windows are ignored.",
         "Icon": "save-window-geometry",
         "License": "GPL-3.0-or-later",
-        "Version": "2.1"
+        "Version": "2.2"
     },
     "X-Plasma-API": "javascript",
-    "X-Plasma-MainScript": "code/main.js"
+    "X-Plasma-MainScript": "code/main.js",
+    "X-KDE-ConfigModule": "kwin/effects/configs/kcm_kwin4_genericscripted"
 }

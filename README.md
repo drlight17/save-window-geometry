@@ -25,6 +25,30 @@ ignored.
   example after unplugging a monitor), the window is centered on the screen
   where it would have opened.
 
+## Ignoring applications
+
+Open *System Settings -> Window Management -> KWin Scripts*, select **Save
+Window Geometry** and click **Configure**. The page contains a blacklist of
+window classes / application ids; matching is case-insensitive against the
+window class, application name, desktop file and window role. Matching windows
+are ignored by this script entirely (KWin still manages them normally).
+
+Plasma 5 script settings pages are static declarative forms and cannot run a
+D-Bus window picker. The picker is therefore integrated into the window menu
+and a global shortcut:
+
+- Right-click a window title bar, open **More Actions** and choose **Ignore for
+  Save Window Geometry**.
+- Or focus the window and press **Meta+Shift+I** (the default; change it in
+  *System Settings -> Shortcuts*).
+
+Either action reads the window's class/application id and adds it to the
+blacklist. A notification confirms the entry. The helper writes the list to the
+`Blacklist` key of `[Script-save-window-geometry]` in `kwinrc` and asks KWin to
+reload, so the settings page and the running script see the change; the helper
+also watches `kwinrc` so edits made through the settings page are applied
+without a restart.
+
 ## Persistence
 
 KWin scripts in Plasma 5 cannot write files, so the package includes a small
